@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t GoncaloMacario/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  # Corre o script de teste
+  - docker run -e CI=true GoncaloMacario/react-test npm test
+
+after_success:
+# Vai percorrer cada pasta do projeto especificadas e construir imagens usando o Dockerfile de prod de cada um
+  - docker build -t GoncaloMacario/multi-client ./client
+  - docker build -t GoncaloMacario/multi-nginx ./nginx
+  - docker build -t GoncaloMacario/multi-server ./server
+  - docker build -t GoncaloMacario/multi-worker ./worker
+# Login docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+# Pegar nestas imagens e fazer o push para o docker hub
+  - docker push GoncaloMacario/multi-client
+  - docker push GoncaloMacario/multi-nginx
+  - docker push GoncaloMacario/multi-server
+  - docker push GoncaloMacario/multi-worker
