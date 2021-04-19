@@ -1,0 +1,22 @@
+# NGINX vai olhar para todos os requests vindo do browser e decidir em qual serviço de backend vai encaminhar o pedido
+# Regras de configuração NGINX
+upstream client {
+  server client:3000;
+}
+
+upstream api {
+  server api:5000;
+}
+
+server{
+    listen 80;
+    # Se algum pedido for para "/" o proxy é configurado para encaminhar esse pedido para a upstream client
+    location / {
+        proxy_pass http://client;
+    }
+
+    location /api {
+        rewrite /api/(.*) /$1 break;
+        proxy_pass http://api;
+    }
+}
